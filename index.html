@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Engineer Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Config for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#a5dcd9',
+                            DEFAULT: '#77bfbb', // สีหลักเดิม
+                            dark: '#5ca39f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth transition for progress bars */
+        .progress-bar {
+            transition: width 1s ease-out;
+        }
+        body {
+            background-color: #f8fafc; /* Slate-50 */
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-brand selection:text-white">
+
+    <!-- Background Effects (Light Theme) -->
+    <div class="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-white via-slate-50 to-transparent -z-10"></div>
+    <div class="fixed top-0 right-0 w-1/2 h-96 bg-brand opacity-10 blur-[120px] rounded-full -z-10"></div>
+
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-gradient-to-br from-brand to-teal-600 rounded-xl shadow-lg shadow-brand/30">
+                        <i data-lucide="activity" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">
+                            AI Prompt Engineer
+                        </h1>
+                        <p class="text-slate-500 text-sm">ระบบติดตามผลการแข่งขัน (RealTime)</p>
+                    </div>
+
+                    <div class="hidden lg:block ml-4 pl-4 border-l border-slate-200">
+                        <p class="text-slate-500 text-xs">เริ่มการแข่งขัน 10.00 น.</p>
+                        <p class="text-slate-500 text-xs">สิ้นสุดแข่งขัน 12.00 น.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
+                    <i data-lucide="clock" class="w-4 h-4 text-brand-dark"></i>
+                    <span id="currentTime" class="font-mono text-lg text-slate-700 font-semibold">
+                        00:00:00
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="container mx-auto px-4 mt-8">
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                
+                <!-- Search -->
+                <div class="md:col-span-6 lg:col-span-5 relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="h-5 w-5 text-slate-400"></i>
+                    </div>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all hover:bg-white"
+                        placeholder="ค้นหา ชื่อ, โรงเรียน, โครงการ..."
+                    />
+                </div>
+
+                <!-- Region Filter -->
+                <div class="md:col-span-3 lg:col-span-3 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="map-pin" class="h-5 w-5 text-brand-dark"></i>
+                    </div>
+                    <select
+                        id="regionFilter"
+                        class="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand appearance-none cursor-pointer hover:bg-white"
+                    >
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                        <i data-lucide="filter" class="h-4 w-4 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <!-- Venue Filter -->
+                <div class="md:col-span-3 lg:col-span-4 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="monitor" class="h-5 w-5 text-brand-dark"></i>
+                    </div>
+                    <select
+                        id="venueFilter"
+                        class="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand appearance-none cursor-pointer hover:bg-white"
+                    >
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                        <i data-lucide="filter" class="h-4 w-4 text-slate-400"></i>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Grid -->
+    <section class="container mx-auto px-4 mt-8 pb-20">
+        <div id="competitorGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Cards will be injected here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="inline-flex p-4 rounded-full bg-white shadow-md mb-4">
+                <i data-lucide="search-x" class="w-8 h-8 text-slate-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-700">ไม่พบข้อมูลที่ค้นหา</h3>
+            <p class="text-slate-500 mt-2">ลองปรับเปลี่ยนคำค้นหา หรือตัวกรองของคุณ</p>
+        </div>
+    </section>
+
+    <!-- Javascript Logic -->
+    <script>
+        // --- Data ---
+        const competitors = [
+            { 
+                id: 1, sequence: 101, name: "นายสมชาย ใจดีมาก", school: "วิทยาลัยเทคโนโลยีและอาชีวศึกษาตากสินระยอง", 
+                region: "เหนือ", completed: 5, total: 5, status: "finished",
+                competition: { id: 1, project_name: "AI (ปวช.)", venue: "อาคารเรียนรวม 1", room: "Room A101" }
+            },
+            { 
+                id: 2, sequence: 102, name: "น.ส.สมหญิง รักเรียน", school: "โรงเรียนเตรียมอุดมศึกษา", 
+                region: "กลาง", completed: 3, total: 5, status: "competing",
+                competition: { id: 1, project_name: "AI (ปวช.)", venue: "อาคารเรียนรวม 1", room: "Room A102" }
+            },
+            { 
+                id: 3, sequence: 103, name: "นายเก่ง กล้าหาญ", school: "โรงเรียนหาดใหญ่วิทยาลัย", 
+                region: "ใต้", completed: 0, total: 5, status: "standby",
+                competition: { id: 2, project_name: "AI (ปวช.)", venue: "Lab Com 2", room: "Lab 2" }
+            },
+            { 
+                id: 4, sequence: 104, name: "น.ส.สวย งามตา", school: "โรงเรียนเบ็ญจะมะมหาราช", 
+                region: "ตะวันออกเฉียงเหนือ", completed: 4, total: 10, status: "competing",
+                competition: { id: 1, project_name: "AI (ปวช.)", venue: "อาคารเรียนรวม 1", room: "Room A101" }
+            },
+            { 
+                id: 5, sequence: 105, name: "นายฉลาด ปราดเปรื่อง", school: "โรงเรียนชลราษฎรอำรุง", 
+                region: "ตะวันออก", completed: 2, total: 8, status: "competing",
+                competition: { id: 3, project_name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room" }
+            },
+            { 
+                id: 6, sequence: 106, name: "นายมานพ ตรงกลาง", school: "โรงเรียนชลราษฎรอำรุง", 
+                region: "ตะวันออก", completed: 3, total: 8, status: "competing",
+                competition: { id: 3, project_name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room" }
+            },
+        ];
+
+        // --- State Variables ---
+        let searchText = "";
+        let filterRegion = "ทั้งหมด";
+        let filterVenue = "ทั้งหมด";
+
+        // --- Elements ---
+        const currentTimeEl = document.getElementById('currentTime');
+        const searchInput = document.getElementById('searchInput');
+        const regionSelect = document.getElementById('regionFilter');
+        const venueSelect = document.getElementById('venueFilter');
+        const gridContainer = document.getElementById('competitorGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        // --- Helper Functions ---
+        const regions = ["ทั้งหมด", "เหนือ", "กลาง", "ใต้", "ตะวันออก", "ตะวันตก", "ตะวันออกเฉียงเหนือ"];
+        const venues = ["ทั้งหมด", ...new Set(competitors.map(c => c.competition.venue))];
+
+        function initFilters() {
+            // Populate Regions
+            regionSelect.innerHTML = regions.map(r => 
+                `<option value="${r}">${r === 'ทั้งหมด' ? 'ทุกภาค' : 'ภาค' + r}</option>`
+            ).join('');
+
+            // Populate Venues
+            venueSelect.innerHTML = venues.map(v => 
+                `<option value="${v}">${v === 'ทั้งหมด' ? 'ทุกสถานที่แข่งขัน' : v}</option>`
+            ).join('');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            currentTimeEl.textContent = now.toLocaleTimeString('th-TH');
+        }
+
+        function getStatusConfig(status) {
+            switch(status) {
+                case 'finished': 
+                    return { 
+                        badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200', 
+                        dotClass: 'bg-emerald-500', 
+                        text: 'จบการแข่งขัน' 
+                    };
+                case 'competing': 
+                    return { 
+                        badgeClass: 'bg-teal-50 text-teal-700 border-teal-200', 
+                        dotClass: 'animate-pulse bg-brand', 
+                        text: 'กำลังแข่งขัน' 
+                    };
+                default: 
+                    return { 
+                        badgeClass: 'bg-slate-100 text-slate-500 border-slate-200', 
+                        dotClass: 'bg-slate-400', 
+                        text: 'สแตนบาย' 
+                    };
+            }
+        }
+
+        function renderDashboard() {
+            // Filter Data
+            const filtered = competitors.filter(item => {
+                const matchesSearch = 
+                    item.sequence.toString().includes(searchText) ||
+                    item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                    item.school.toLowerCase().includes(searchText.toLowerCase()) ||
+                    item.region.includes(searchText) ||
+                    item.competition.venue.toLowerCase().includes(searchText.toLowerCase()) ||
+                    item.competition.project_name.toLowerCase().includes(searchText.toLowerCase());
+
+                const matchesRegion = filterRegion === "ทั้งหมด" || item.region === filterRegion;
+                const matchesVenue = filterVenue === "ทั้งหมด" || item.competition.venue === filterVenue;
+
+                return matchesSearch && matchesRegion && matchesVenue;
+            });
+
+            // Handle Empty State
+            if (filtered.length === 0) {
+                gridContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Generate HTML
+            gridContainer.innerHTML = filtered.map(item => {
+                const status = getStatusConfig(item.status);
+                const progressPercent = (item.completed / item.total) * 100;
+                
+                // Generate dots for progress
+                let dotsHtml = '';
+                for(let i = 0; i < item.total; i++) {
+                    const dotColor = i < item.completed ? 'bg-brand' : 'bg-slate-200';
+                    dotsHtml += `<div class="w-1.5 h-1.5 rounded-full ${dotColor}"></div>`;
+                }
+
+                return `
+                <div class="group relative bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+                    
+                    <!-- Top Section -->
+                    <div>
+                        <!-- Status Badge -->
+                        <div class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold border ${status.badgeClass}">
+                            <div class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full ${status.dotClass}"></span>
+                                ${status.text}
+                            </div>
+                        </div>
+
+                        <!-- Project Name Badge -->
+                        <div class="mb-3 pr-20">
+                            <div class="inline-flex items-center gap-1 bg-slate-50 px-2 py-1 rounded text-[10px] text-brand-dark border border-slate-200 font-medium">
+                                <i data-lucide="trophy" class="w-3 h-3"></i>
+                                <span class="truncate max-w-[150px]">${item.competition.project_name}</span>
+                            </div>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="mt-1">
+                            <div class="flex items-baseline gap-2 text-slate-400 mb-1">
+                                <span class="text-xs font-mono uppercase tracking-wider">SEQ</span>
+                                <span class="text-xl font-bold text-slate-800 font-mono">${String(item.sequence).padStart(3, '0')}</span>
+                            </div>
+
+                            <h3 class="text-lg font-bold text-slate-800 mb-1 line-clamp-1 group-hover:text-brand-dark transition-colors">
+                                ${item.name}
+                            </h3>
+
+                            <div class="flex items-start gap-2 text-slate-500 text-sm mb-4 min-h-[40px]">
+                                <i data-lucide="school" class="w-4 h-4 mt-0.5 shrink-0 text-slate-400"></i>
+                                <span class="line-clamp-2">${item.school}</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 mb-4 text-xs">
+                                <span class="bg-slate-50 px-2 py-1 rounded border border-slate-200 text-slate-600 font-medium">
+                                    ภาค${item.region}
+                                </span>
+                                <span class="bg-slate-50 px-2 py-1 rounded border border-slate-200 text-slate-600 font-medium flex items-center gap-1">
+                                    <i data-lucide="map-pin" class="w-3 h-3 text-brand"></i>
+                                    ${item.competition.venue}
+                                </span>
+                                <span class="bg-slate-50 px-2 py-1 rounded border border-slate-200 text-slate-600 font-medium">
+                                    ${item.competition.room}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar Section -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-xs text-slate-400 font-medium">ความคืบหน้า</span>
+                            <span class="text-sm font-bold text-brand-dark">
+                                ${item.completed}/${item.total}
+                            </span>
+                        </div>
+
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden shadow-inner">
+                            <div 
+                                class="progress-bar h-2.5 rounded-full bg-gradient-to-r from-teal-500 to-brand"
+                                style="width: ${progressPercent}%"
+                            ></div>
+                        </div>
+
+                        <div class="flex gap-1 mt-2 justify-end">
+                            ${dotsHtml}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // Re-initialize icons for new elements
+            lucide.createIcons();
+        }
+
+        // --- Event Listeners ---
+        searchInput.addEventListener('input', (e) => {
+            searchText = e.target.value;
+            renderDashboard();
+        });
+
+        regionSelect.addEventListener('change', (e) => {
+            filterRegion = e.target.value;
+            renderDashboard();
+        });
+
+        venueSelect.addEventListener('change', (e) => {
+            filterVenue = e.target.value;
+            renderDashboard();
+        });
+
+        // --- Initialization ---
+        setInterval(updateTime, 1000);
+        updateTime();
+        initFilters();
+        renderDashboard();
+
+    </script>
+</body>
+</html>
