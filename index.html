@@ -69,7 +69,7 @@
                 <div class="flex flex-col lg:flex-row items-center gap-4 w-full md:w-auto">
                     <div class="flex items-center gap-3 w-full justify-center lg:justify-start">
                         <!-- Updated Logo -->
-                        <img src="https://bigbot.co.th/static/media/Bigbot-Ai.50461b44567573139f77.png" alt="Bigbot AI Logo" class="w-20 h-20 object-contain shrink-0">
+                        <img src="https://bigbot.co.th/static/media/Bigbot-Ai.50461b44567573139f77.png" alt="Bigbot AI Logo" class="w-14 h-14 object-contain shrink-0">
                         
                         <div class="text-left">
                             <h1 class="text-xl sm:text-2xl font-bold text-slate-800 leading-tight">
@@ -79,17 +79,19 @@
                         </div>
                     </div>
 
-                    <!-- Schedule Info (Updated for Visibility) -->
-                    <div class="flex items-center gap-2 w-full lg:w-auto justify-center lg:justify-start lg:ml-4 lg:pl-4 lg:border-l border-slate-200">
-                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 shadow-sm">
-                            
+                    <!-- Schedule Info (Fixed Layout: No Wrap) -->
+                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-center lg:justify-start lg:ml-4 lg:pl-4 lg:border-l border-slate-200">
+                        <!-- Start Badge -->
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 shadow-sm whitespace-nowrap">
+                            <i data-lucide="play-circle" class="w-4 h-4 shrink-0"></i>
                             <div class="flex flex-row gap-1 text-xs leading-none items-baseline">
                                 <span class="opacity-70">เริ่ม</span>
                                 <span class="font-bold text-sm">10.00 น.</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 shadow-sm">
-                           
+                        <!-- End Badge -->
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 shadow-sm whitespace-nowrap">
+                            <i data-lucide="flag" class="w-4 h-4 shrink-0"></i>
                             <div class="flex flex-row gap-1 text-xs leading-none items-baseline">
                                 <span class="opacity-70">สิ้นสุด</span>
                                 <span class="font-bold text-sm">12.00 น.</span>
@@ -250,7 +252,7 @@
                 { id: 1, name: "AI (ปวช.)", venue: "อาคารเรียนรวม 1", room: "Room A101", total: 5 },
                 { id: 2, name: "AI (ปวช.)", venue: "Lab Com 2", room: "Lab 2", total: 5 },
                 { id: 3, name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room", total: 8 },
-                { id: 3, name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room", total: 8 } // เพิ่มโอกาสออกปวส.
+                { id: 3, name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room", total: 8 }
             ];
 
             const generated = [];
@@ -264,8 +266,6 @@
                 const region = regionsList[Math.floor(Math.random() * regionsList.length)];
                 const proj = projects[Math.floor(Math.random() * projects.length)];
                 
-                // Randomize progress
-                // 10% chance finished, 20% standby, 70% competing
                 const rand = Math.random();
                 let status, completed;
                 
@@ -277,7 +277,6 @@
                     completed = 0;
                 } else {
                     status = 'competing';
-                    // Random completed between 1 and total-1
                     completed = Math.floor(Math.random() * (proj.total - 1)) + 1;
                 }
 
@@ -301,14 +300,14 @@
             return generated;
         }
 
-        // --- Combine Data ---
-        const competitors = [...baseCompetitors, ...generateCompetitors(50)];
+        // --- Combine Data (Mutable for updates) ---
+        let competitors = [...baseCompetitors, ...generateCompetitors(50)];
 
         // --- State Variables ---
         let searchText = "";
         let filterRegion = "ทั้งหมด";
         let filterVenue = "ทั้งหมด";
-        let currentView = "grid"; // 'grid' or 'table'
+        let currentView = "grid"; 
 
         // --- Elements ---
         const currentTimeEl = document.getElementById('currentTime');
@@ -322,7 +321,6 @@
         const viewTableBtn = document.getElementById('viewTableBtn');
 
         // --- Helper Functions ---
-        // Get unique regions and venues from the FULL generated list
         const regions = ["ทั้งหมด", "เหนือ", "กลาง", "ใต้", "ตะวันออก", "ตะวันตก", "ตะวันออกเฉียงเหนือ"];
         const venues = ["ทั้งหมด", ...new Set(competitors.map(c => c.competition.venue))];
 
@@ -351,7 +349,6 @@
                     };
                 case 'competing': 
                     return { 
-                        // Changed to Orange for better distinction
                         badgeClass: 'bg-orange-100 text-orange-800 border-orange-200', 
                         dotClass: 'animate-pulse bg-orange-500', 
                         text: 'กำลังแข่งขัน' 
@@ -368,29 +365,53 @@
         function toggleView(view) {
             currentView = view;
             
-            // Update Button Styles
             const activeClass = "bg-brand text-white shadow-sm";
             const inactiveClass = "text-slate-500 hover:text-slate-800 hover:bg-slate-50";
 
             if (view === 'grid') {
                 viewGridBtn.className = `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeClass}`;
                 viewTableBtn.className = `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${inactiveClass}`;
-                
-                // Update container layout
                 dataContainer.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
             } else {
                 viewTableBtn.className = `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeClass}`;
                 viewGridBtn.className = `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${inactiveClass}`;
-                
-                // Update container layout for table (remove grid)
                 dataContainer.className = "w-full overflow-hidden rounded-2xl border border-slate-200 shadow-lg bg-white";
             }
 
             renderDashboard();
         }
 
+        // --- Logic: Simulate Live Competition ---
+        function simulateLiveProgress() {
+            // Update random competitors
+            competitors.forEach(comp => {
+                // Ignore finished
+                if (comp.status !== 'finished') {
+                    const rand = Math.random();
+                    
+                    // 20% Chance for Standby -> Competing
+                    if (comp.status === 'standby' && rand > 0.8) {
+                        comp.status = 'competing';
+                    }
+                    
+                    // 30% Chance for Competing -> Progress
+                    if (comp.status === 'competing' && rand > 0.7) {
+                        comp.completed++;
+                        
+                        // Check if finished
+                        if (comp.completed >= comp.total) {
+                            comp.completed = comp.total;
+                            comp.status = 'finished';
+                        }
+                    }
+                }
+            });
+            
+            // Re-render only dashboard content
+            renderDashboard();
+        }
+
         function renderDashboard() {
-            // Filter Data
             const filtered = competitors.filter(item => {
                 const matchesSearch = 
                     item.sequence.toString().includes(searchText) ||
@@ -406,29 +427,23 @@
                 return matchesSearch && matchesRegion && matchesVenue;
             });
 
-            // Update Count
             resultCountEl.textContent = `${filtered.length} คน`;
 
-            // Handle Empty State
             if (filtered.length === 0) {
                 dataContainer.innerHTML = '';
-                // If table view, we might need to hide the container border/shadow to look clean
                 if(currentView === 'table') dataContainer.className = "";
-                
                 emptyState.classList.remove('hidden');
                 return;
             } else {
                 emptyState.classList.add('hidden');
             }
 
-            // Render Content based on View Mode
             if (currentView === 'grid') {
                 renderGrid(filtered);
             } else {
                 renderTable(filtered);
             }
 
-            // Re-initialize icons
             lucide.createIcons();
         }
 
@@ -437,7 +452,6 @@
                 const status = getStatusConfig(item.status);
                 const progressPercent = (item.completed / item.total) * 100;
                 
-                // Dots for progress
                 let dotsHtml = '';
                 for(let i = 0; i < item.total; i++) {
                     const dotColor = i < item.completed ? 'bg-brand' : 'bg-slate-200';
@@ -610,6 +624,7 @@
 
         // --- Initialization ---
         setInterval(updateTime, 1000);
+        setInterval(simulateLiveProgress, 10000); // Auto-refresh data every 10 seconds
         updateTime();
         initFilters();
         renderDashboard();
