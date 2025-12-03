@@ -68,9 +68,9 @@
                 
                 <div class="flex flex-col lg:flex-row items-center gap-4 w-full md:w-auto">
                     <div class="flex items-center gap-3 w-full justify-center lg:justify-start">
-                        <div class="p-3 bg-gradient-to-br from-brand to-teal-600 rounded-xl shadow-lg shadow-brand/30 shrink-0">
-                            <i data-lucide="activity" class="w-8 h-8 text-white"></i>
-                        </div>
+                        <!-- Updated Logo -->
+                        <img src="https://bigbot.co.th/static/media/Bigbot-Ai.50461b44567573139f77.png" alt="Bigbot AI Logo" class="w-14 h-14 object-contain shrink-0">
+                        
                         <div class="text-left">
                             <h1 class="text-xl sm:text-2xl font-bold text-slate-800 leading-tight">
                                 AI Prompt Engineer
@@ -201,8 +201,8 @@
 
     <!-- Javascript Logic -->
     <script>
-        // --- Data ---
-        const competitors = [
+        // --- Base Data (Manual Entries) ---
+        const baseCompetitors = [
             { 
                 id: 1, sequence: 101, name: "นายสมชาย ใจดีมาก", school: "วิทยาลัยเทคโนโลยีและอาชีวศึกษาตากสินระยอง", 
                 region: "เหนือ", completed: 5, total: 5, status: "finished",
@@ -235,6 +235,75 @@
             },
         ];
 
+        // --- Data Generation Helper ---
+        function generateCompetitors(count) {
+            const firstNames = ["กิตติ", "สมศรี", "วิชัย", "นุช", "ประเสริฐ", "วันเพ็ญ", "ธนพล", "สุดา", "วิภา", "สุชาติ", "สมบูรณ์", "อารี", "บุญมี", "ชัย", "กานดา", "ธีรภัทร", "พิมพ์ชนก", "ณัฐพงศ์", "จิราพร", "วรพล"];
+            const lastNames = ["ใจดี", "มีสุข", "รักเรียน", "ขยัน", "มั่นคง", "สุขใจ", "เจริญ", "ดีเลิศ", "งามตา", "เก่งจริง", "วงศ์สวัสดิ์", "ทองดี", "แก้วมณี", "ศรีสวัสดิ์", "รัตนไพศาล"];
+            const schools = [
+                "โรงเรียนระยองวิทยาคม", "วิทยาลัยเทคนิคชลบุรี", "โรงเรียนสตรีสมุทรปราการ", "วิทยาลัยอาชีวศึกษาเชียงใหม่", 
+                "โรงเรียนขอนแก่นวิทยายน", "โรงเรียนหาดใหญ่วิทยาลัย", "โรงเรียนเตรียมอุดมศึกษาพัฒนาการ", 
+                "วิทยาลัยเทคนิคนครราชสีมา", "โรงเรียนสวนกุหลาบวิทยาลัย", "วิทยาลัยเทคนิคภูเก็ต", 
+                "โรงเรียนสามเสนวิทยาลัย", "วิทยาลัยอาชีวศึกษาอุบลราชธานี"
+            ];
+            const regionsList = ["เหนือ", "กลาง", "ใต้", "ตะวันออก", "ตะวันตก", "ตะวันออกเฉียงเหนือ"];
+            const projects = [
+                { id: 1, name: "AI (ปวช.)", venue: "อาคารเรียนรวม 1", room: "Room A101", total: 5 },
+                { id: 2, name: "AI (ปวช.)", venue: "Lab Com 2", room: "Lab 2", total: 5 },
+                { id: 3, name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room", total: 8 },
+                { id: 3, name: "AI (ปวส.)", venue: "Lab Com 1", room: "Server Room", total: 8 } // เพิ่มโอกาสออกปวส.
+            ];
+
+            const generated = [];
+            let startId = 7;
+            let startSeq = 107;
+
+            for (let i = 0; i < count; i++) {
+                const fname = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const lname = lastNames[Math.floor(Math.random() * lastNames.length)];
+                const school = schools[Math.floor(Math.random() * schools.length)];
+                const region = regionsList[Math.floor(Math.random() * regionsList.length)];
+                const proj = projects[Math.floor(Math.random() * projects.length)];
+                
+                // Randomize progress
+                // 10% chance finished, 20% standby, 70% competing
+                const rand = Math.random();
+                let status, completed;
+                
+                if (rand < 0.1) {
+                    status = 'finished';
+                    completed = proj.total;
+                } else if (rand < 0.3) {
+                    status = 'standby';
+                    completed = 0;
+                } else {
+                    status = 'competing';
+                    // Random completed between 1 and total-1
+                    completed = Math.floor(Math.random() * (proj.total - 1)) + 1;
+                }
+
+                generated.push({
+                    id: startId + i,
+                    sequence: startSeq + i,
+                    name: `${fname} ${lname}`,
+                    school: school,
+                    region: region,
+                    completed: completed,
+                    total: proj.total,
+                    status: status,
+                    competition: {
+                        id: proj.id,
+                        project_name: proj.name,
+                        venue: proj.venue,
+                        room: proj.room
+                    }
+                });
+            }
+            return generated;
+        }
+
+        // --- Combine Data ---
+        const competitors = [...baseCompetitors, ...generateCompetitors(50)];
+
         // --- State Variables ---
         let searchText = "";
         let filterRegion = "ทั้งหมด";
@@ -253,6 +322,7 @@
         const viewTableBtn = document.getElementById('viewTableBtn');
 
         // --- Helper Functions ---
+        // Get unique regions and venues from the FULL generated list
         const regions = ["ทั้งหมด", "เหนือ", "กลาง", "ใต้", "ตะวันออก", "ตะวันตก", "ตะวันออกเฉียงเหนือ"];
         const venues = ["ทั้งหมด", ...new Set(competitors.map(c => c.competition.venue))];
 
@@ -281,8 +351,9 @@
                     };
                 case 'competing': 
                     return { 
-                        badgeClass: 'bg-teal-50 text-teal-700 border-teal-200', 
-                        dotClass: 'animate-pulse bg-brand', 
+                        // Changed to Orange for better distinction
+                        badgeClass: 'bg-orange-100 text-orange-800 border-orange-200', 
+                        dotClass: 'animate-pulse bg-orange-500', 
                         text: 'กำลังแข่งขัน' 
                     };
                 default: 
